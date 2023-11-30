@@ -1,91 +1,179 @@
-//
-//  GameScene.swift
-//  Pong
-//
-//  Created by Federico Calabró on 17/10/23.
-//
-
 import SpriteKit
-import GameplayKit
 
 class GameScene: SKScene {
     
-    private var label : SKLabelNode?
-    private var spinnyNode : SKShapeNode?
+    var ball: SKShapeNode!
+    var leftPaddle: SKShapeNode!
+    var rightPaddle: SKShapeNode!
+    var leftScoreLabel: SKLabelNode!
+    var rightScoreLabel: SKLabelNode!
+    
+    var leftScore: Int = 0 {
+        didSet {
+            leftScoreLabel.text = "\(leftScore)"
+        }
+    }
+    
+    var rightScore: Int = 0 {
+        didSet {
+            rightScoreLabel.text = "\(rightScore)"
+        }
+    }
+    
+    var ballSpeed: CGFloat = 100.0
+    var paddleSpeed: CGFloat = 100.0
+    var ballSpeedMultiplier: CGFloat = 1.1
+    
+    var keysPressed: Set<UInt16> = []
+    
+    var lastUpdateTime: TimeInterval = 0
     
     override func didMove(to view: SKView) {
+        backgroundColor = SKColor.gray
+        setupGameElements()
+    }
+    
+    func setupGameElements() {
+        // Ball setup
+        let ballDiameter = CGFloat(15)
+        ball = SKShapeNode(circleOfRadius: ballDiameter / 2)
+        ball.fillColor = .black
+        ball.position = CGPoint(x: size.width/2, y: size.height/2)
+        ball.physicsBody = SKPhysicsBody(circleOfRadius: ballDiameter / 2)
+        configurePhysicsBody(ball.physicsBody)
+        ball.physicsBody?.isDynamic = true  // Ensure the ball is dynamic
+        addChild(ball)
+        ball.physicsBody?.applyImpulse(CGVector(dx: ballSpeed, dy: ballSpeed))  // Apply initial impulse
+
+        // Paddles setup
+        let paddleSize = CGSize(width: 15, height: 80)
+        leftPaddle = createPaddle(size: paddleSize, position: CGPoint(x: 30, y: size.height/2))
+        rightPaddle = createPaddle(size: paddleSize, position: CGPoint(x: size.width - 30, y: size.height/2))
         
-        // Get label node from scene and store it for use later
-        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
-        if let label = self.label {
-            label.alpha = 0.0
-            label.run(SKAction.fadeIn(withDuration: 2.0))
-        }
+        // Score labels setup
+        leftScoreLabel = SKLabelNode(fontNamed: "Helvetica")
+        leftScoreLabel.fontSize = 20
+        leftScoreLabel.position = CGPoint(x: size.width * 0.25, y: size.height - 40)
+        leftScoreLabel.text = "\(leftScore)"
+        addChild(leftScoreLabel)
         
-        // Create shape node to use during mouse interaction
-        let w = (self.size.width + self.size.height) * 0.05
-        self.spinnyNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w * 0.3)
-        
-        if let spinnyNode = self.spinnyNode {
-            spinnyNode.lineWidth = 2.5
-            
-            spinnyNode.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
-            spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-                                              SKAction.fadeOut(withDuration: 0.5),
-                                              SKAction.removeFromParent()]))
-        }
+        rightScoreLabel = SKLabelNode(fontNamed: "Helvetica")
+        rightScoreLabel.fontSize = 20
+        rightScoreLabel.position = CGPoint(x: size.width * 0.75, y: size.height - 40)
+        rightScoreLabel.text = "\(rightScore)"
+        addChild(rightScoreLabel)
     }
-    
-    
-    func touchDown(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.green
-            self.addChild(n)
-        }
+
+    func createPaddle(size: CGSize, position: CGPoint) -> SKShapeNode {
+        let paddle = SKShapeNode(rectOf: size, cornerRadius: 10)
+        paddle.fillColor = .black
+        paddle.position = position
+        paddle.physicsBody = SKPhysicsBody(rectangleOf: size)
+        configurePhysicsBody(paddle.physicsBody)
+        addChild(paddle)
+        return paddle
     }
-    
-    func touchMoved(toPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.blue
-            self.addChild(n)
-        }
-    }
-    
-    func touchUp(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.red
-            self.addChild(n)
-        }
-    }
-    
-    override func mouseDown(with event: NSEvent) {
-        self.touchDown(atPoint: event.location(in: self))
-    }
-    
-    override func mouseDragged(with event: NSEvent) {
-        self.touchMoved(toPoint: event.location(in: self))
-    }
-    
-    override func mouseUp(with event: NSEvent) {
-        self.touchUp(atPoint: event.location(in: self))
-    }
-    
-    override func keyDown(with event: NSEvent) {
-        switch event.keyCode {
-        case 0x31:
-            if let label = self.label {
-                label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-            }
-        default:
-            print("keyDown: \(event.characters!) keyCode: \(event.keyCode)")
-        }
-    }
-    
-    
+
+    func configurePhysicsBody(_ physicsBody: SKPhysicsBody?) {
+        physicsBody?.affectedByGravity = false
+        physicsBody?.restitution = 1
+        physicsBody?.friction = 0
+        physicsBody?.linearDamping = 0
+        physicsBody?.allowsRotation = false    }
+
     override func update(_ currentTime: TimeInterval) {
-        // Called before each frame is rendered
+        let deltaTime = currentTime - lastUpdateTime
+        lastUpdateTime = currentTime
+
+        // Ball collision with top and bottom
+        if ball.position.y - ball.frame.size.height/2 <= 0 || ball.position.y + ball.frame.size.height/2 >= size.height {
+            let dy = -ball.physicsBody!.velocity.dy
+            ball.physicsBody?.velocity = CGVector(dx: ball.physicsBody!.velocity.dx, dy: dy)
+        }
+        
+        // Ball out of bounds handling
+        handleBallOutOfBounds()
+
+        // AI for right paddle
+        updateRightPaddle(deltaTime: deltaTime)
+
+        // Ball collision with paddles
+        handleBallPaddleCollision()
+
+        // Update left paddle position
+        updateLeftPaddlePosition(deltaTime: deltaTime)
+    }
+
+    func handleBallOutOfBounds() {
+        if ball.position.x - ball.frame.size.width/2 <= 0 {
+            rightScore += 1
+            resetBallPosition()
+        } else if ball.position.x + ball.frame.size.width/2 >= size.width {
+            leftScore += 1
+            resetBallPosition()
+        }
+    }
+
+    func resetBallPosition() {
+        ball.position = CGPoint(x: size.width/2, y: size.height/2)
+        ball.physicsBody?.velocity = CGVector(dx: ballSpeed, dy: ballSpeed)
+    }
+
+    func updateRightPaddle(deltaTime: TimeInterval) {
+        guard let ball = ball, let rightPaddle = rightPaddle else {
+            print("Ball or right paddle is not initialized")
+            return
+        }
+
+        let distanceToBall = ball.position.y - rightPaddle.position.y
+        if abs(distanceToBall) > 10 {
+            if ball.position.y > rightPaddle.position.y {
+                rightPaddle.position.y += min(paddleSpeed * CGFloat(deltaTime), abs(distanceToBall))
+            } else {
+                rightPaddle.position.y -= min(paddleSpeed * CGFloat(deltaTime), abs(distanceToBall))
+            }
+        }
+    }
+
+    func handleBallPaddleCollision() {
+        if ball.frame.intersects(leftPaddle.frame) || ball.frame.intersects(rightPaddle.frame) {
+            let dx = ball.physicsBody!.velocity.dx * ballSpeedMultiplier
+            let dy = ball.physicsBody!.velocity.dy * ballSpeedMultiplier
+            ball.physicsBody?.velocity = CGVector(dx: -dx, dy: dy)
+
+            // Cool animations and spark effect
+            let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
+            let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
+            ball.run(SKAction.sequence([scaleUp, scaleDown]))
+            createSpark(at: ball.position)
+        }
+    }
+
+    func createSpark(at position: CGPoint) {
+        if let spark = SKEmitterNode(fileNamed: "Spark.sks") {
+            spark.position = position
+            addChild(spark)
+            let removeAction = SKAction.sequence([SKAction.wait(forDuration: 1), SKAction.removeFromParent()])
+            spark.run(removeAction)
+        }
+    }
+
+    func updateLeftPaddlePosition(deltaTime: TimeInterval) {
+        if keysPressed.contains(13) { // 'W' key
+            leftPaddle.position.y += paddleSpeed * CGFloat(deltaTime)
+        } else if keysPressed.contains(1) { // 'S' key
+            leftPaddle.position.y -= paddleSpeed * CGFloat(deltaTime)
+        }
+
+        // Ensure paddle stays within the screen bounds
+        leftPaddle.position.y = max(leftPaddle.frame.size.height/2, min(size.height - leftPaddle.frame.size.height/2, leftPaddle.position.y))
+    }
+
+    override func keyDown(with event: NSEvent) {
+        keysPressed.insert(event.keyCode)
+    }
+        
+    override func keyUp(with event: NSEvent) {
+        keysPressed.remove(event.keyCode)
     }
 }

@@ -13,7 +13,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
+        if let mainWindow = NSApplication.shared.mainWindow {
+            mainWindow.acceptsMouseMovedEvents = true
+        }
+
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {

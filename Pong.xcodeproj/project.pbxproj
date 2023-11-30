@@ -17,6 +17,7 @@
 		9080A23F2ADEA44F009BA894 /* PongTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9080A23E2ADEA44F009BA894 /* PongTests.swift */; };
 		9080A2492ADEA44F009BA894 /* PongUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9080A2482ADEA44F009BA894 /* PongUITests.swift */; };
 		9080A24B2ADEA44F009BA894 /* PongUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9080A24A2ADEA44F009BA894 /* PongUITestsLaunchTests.swift */; };
+		90DC37072B192C96000940A1 /* Spark.sks in Resources */ = {isa = PBXBuildFile; fileRef = 90DC37062B192C96000940A1 /* Spark.sks */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +52,7 @@
 		9080A2442ADEA44F009BA894 /* PongUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PongUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9080A2482ADEA44F009BA894 /* PongUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PongUITests.swift; sourceTree = "<group>"; };
 		9080A24A2ADEA44F009BA894 /* PongUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PongUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		90DC37062B192C96000940A1 /* Spark.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Spark.sks; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +104,7 @@
 			isa = PBXGroup;
 			children = (
 				9080A2262ADEA44E009BA894 /* AppDelegate.swift */,
+				90DC37062B192C96000940A1 /* Spark.sks */,
 				9080A2282ADEA44E009BA894 /* GameScene.sks */,
 				9080A22A2ADEA44E009BA894 /* Actions.sks */,
 				9080A22C2ADEA44E009BA894 /* GameScene.swift */,
@@ -235,6 +238,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9080A2292ADEA44E009BA894 /* GameScene.sks in Resources */,
+				90DC37072B192C96000940A1 /* Spark.sks in Resources */,
 				9080A2312ADEA44F009BA894 /* Assets.xcassets in Resources */,
 				9080A22B2ADEA44E009BA894 /* Actions.sks in Resources */,
 				9080A2342ADEA44F009BA894 /* Main.storyboard in Resources */,
