@@ -27,9 +27,9 @@ class GameScene: SKScene {
     var keysPressed: Set<UInt16> = []
     
     var lastUpdateTime: TimeInterval = 0
-    
+
     override func didMove(to view: SKView) {
-        backgroundColor = SKColor.gray
+        backgroundColor = SKColor.black
         setupGameElements()
     }
     
@@ -37,7 +37,7 @@ class GameScene: SKScene {
         // Ball setup
         let ballDiameter = CGFloat(15)
         ball = SKShapeNode(circleOfRadius: ballDiameter / 2)
-        ball.fillColor = .black
+        ball.fillColor = .white
         ball.position = CGPoint(x: size.width/2, y: size.height/2)
         ball.physicsBody = SKPhysicsBody(circleOfRadius: ballDiameter / 2)
         configurePhysicsBody(ball.physicsBody)
@@ -66,7 +66,7 @@ class GameScene: SKScene {
 
     func createPaddle(size: CGSize, position: CGPoint) -> SKShapeNode {
         let paddle = SKShapeNode(rectOf: size, cornerRadius: 10)
-        paddle.fillColor = .black
+        paddle.fillColor = .white
         paddle.position = position
         paddle.physicsBody = SKPhysicsBody(rectangleOf: size)
         configurePhysicsBody(paddle.physicsBody)
@@ -136,6 +136,14 @@ class GameScene: SKScene {
     }
 
     func handleBallPaddleCollision() {
+        var sparkAngle: CGFloat = 0
+
+        if ball.frame.intersects(leftPaddle.frame) {
+            sparkAngle = 0
+        } else if ball.frame.intersects(rightPaddle.frame) {
+            sparkAngle = 180
+        }
+
         if ball.frame.intersects(leftPaddle.frame) || ball.frame.intersects(rightPaddle.frame) {
             let dx = ball.physicsBody!.velocity.dx * ballSpeedMultiplier
             let dy = ball.physicsBody!.velocity.dy * ballSpeedMultiplier
@@ -145,18 +153,20 @@ class GameScene: SKScene {
             let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
             let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
             ball.run(SKAction.sequence([scaleUp, scaleDown]))
-            createSpark(at: ball.position)
+            createSpark(at: ball.position, angle: sparkAngle)
         }
     }
 
-    func createSpark(at position: CGPoint) {
+    func createSpark(at position: CGPoint, angle: CGFloat) {
         if let spark = SKEmitterNode(fileNamed: "Spark.sks") {
             spark.position = position
+            spark.emissionAngle = angle * (.pi / 180) // Convert degrees to radians
             addChild(spark)
             let removeAction = SKAction.sequence([SKAction.wait(forDuration: 1), SKAction.removeFromParent()])
             spark.run(removeAction)
         }
     }
+
 
     func updateLeftPaddlePosition(deltaTime: TimeInterval) {
         if keysPressed.contains(13) { // 'W' key
